@@ -3,6 +3,7 @@ package store.service
 import camp.nextstep.edu.missionutils.DateTimes
 import store.model.Product
 import store.model.Promotion
+import store.model.PurchaseResult
 import store.repository.ProductRepository
 import store.repository.PromotionRepository
 import kotlin.math.min
@@ -11,12 +12,14 @@ class StoreService(
     private val productRepository: ProductRepository,
     private val promotionRepository: PromotionRepository
 ) {
-    fun orderItem(name: String, quantity: Int) {
+    fun orderItem(name: String, quantity: Int): PurchaseResult {
         val product = validateAndLoadProduct(name, quantity)
 
-        val remainQuantity = processPromotionIfApplicable(product, quantity)
+        val (remainQuantity, giftCount) = processPromotionIfApplicable(product, quantity)
 
         processGeneralStock(product, remainQuantity)
+
+        return PurchaseResult(product, quantity, giftCount)
     }
 
     private fun validateAndLoadProduct(name: String, quantity: Int): Product {
@@ -29,23 +32,24 @@ class StoreService(
         return product
     }
 
-    private fun processPromotionIfApplicable(product: Product, quantity: Int): Int {
+    private fun processPromotionIfApplicable(product: Product, quantity: Int): Pair<Int, Int> {
         if (product.promotionName != null && isPromotionActive(product.promotionName)) {
             val promotion = promotionRepository.findByName(product.promotionName)!!
             return applyPromotionPolicy(product, promotion, quantity)
         }
-        return quantity
+        return Pair(quantity, 0)
     }
 
-    private fun applyPromotionPolicy(product: Product, promotion: Promotion, count: Int): Int {
+    private fun applyPromotionPolicy(product: Product, promotion: Promotion, count: Int): Pair<Int, Int> {
         val setSize = promotion.buy + promotion.get
         val applicableSets = calculateApplicableSets(product, setSize, count)
 
-        deductSetStock(product, applicableSets, setSize)
+        val giftCount = deductSetStock(product, applicableSets, setSize, promotion.get)
 
         val remain = count - (applicableSets * setSize)
+        val finalRemain = deductRemainderFromPromotion(product, remain)
 
-        return deductRemainderFromPromotion(product, remain)
+        return Pair(finalRemain, giftCount)
     }
 
     private fun calculateApplicableSets(product: Product, setSize: Int, count: Int): Int {
@@ -54,10 +58,11 @@ class StoreService(
         return min(maxSets, reqSets)
     }
 
-    private fun deductSetStock(product: Product, sets: Int, setSize: Int) {
+    private fun deductSetStock(product: Product, sets: Int, setSize: Int, getCount: Int): Int {
         val deductQuantity = sets * setSize
         product.decreasePromotionStock(deductQuantity)
-        // TODO: 여기서 증정품(sets * get) 정보를 기록.
+
+        return sets * getCount
     }
 
     private fun deductRemainderFromPromotion(product: Product, count: Int): Int {

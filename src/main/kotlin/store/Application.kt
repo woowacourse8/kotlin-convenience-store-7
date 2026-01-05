@@ -10,5 +10,8 @@ fun main() {
     val promotionRepo = PromotionRepository()
     val service = StoreService(productRepo, promotionRepo)
 
-    service.orderItem("콜라", 3)
+    val result = service.orderItem("콜라", 3)
+    println(result.product.name)
+    println(result.purchaseCount)
+    println(result.giftCount)
 }
