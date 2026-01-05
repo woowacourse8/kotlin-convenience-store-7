@@ -8,4 +8,8 @@ data class Promotion(
     val get: Int,
     val startDate: LocalDate,
     val endDate: LocalDate
-)
+) {
+    fun getType(): PromotionType {
+        return PromotionType.checkType(buy, get)
+    }
+}

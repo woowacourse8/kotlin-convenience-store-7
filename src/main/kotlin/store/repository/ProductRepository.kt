@@ -46,4 +46,8 @@ class ProductRepository {
         val quantity: Int,
         val promoName: String?
     )
+
+    fun findAll(): List<Product> {
+        return products
+    }
 }

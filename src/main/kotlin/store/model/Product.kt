@@ -17,7 +17,7 @@ data class Product(
         quantity -= amount
     }
 
-    fun hasPromotionStock(): Boolean {
-        return promotionQuantity > 0
+    fun hasPromotionStock(quantity: Int): Boolean {
+        return promotionQuantity - quantity > 0
     }
 }

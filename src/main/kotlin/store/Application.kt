@@ -16,7 +16,6 @@ fun main() {
     val inputView = InputView()
     val outputView = OutputView()
 
-
     val controller = StoreController(inputView, outputView, service)
 
     controller.run()
