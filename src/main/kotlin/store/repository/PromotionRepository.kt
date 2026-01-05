@@ -22,7 +22,7 @@ class PromotionRepository {
         }
     }
 
-    fun findByName(name: String): List<Promotion> {
-        return promotions.filter { it.name == name}
+    fun findByName(name: String): Promotion? {
+        return promotions.find { it.name == name}
     }
 }

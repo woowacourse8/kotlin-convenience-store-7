@@ -2,11 +2,13 @@ package store
 
 import store.repository.ProductRepository
 import store.repository.PromotionRepository
+import store.service.StoreService
 
 fun main() {
     // TODO: 프로그램 구현
-    val repo = PromotionRepository()
-    val twoPlusOne = "탄산2+1"
+    val productRepo = ProductRepository()
+    val promotionRepo = PromotionRepository()
+    val service = StoreService(productRepo, promotionRepo)
 
-    println(repo.findByName(twoPlusOne))
+    service.orderItem("콜라", 3)
 }
