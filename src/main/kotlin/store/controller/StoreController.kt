@@ -31,7 +31,6 @@ class StoreController(
             false
         }
 
-        // 4. 영수증 출력
         outputView.printReceipt(results, isMembership)
     }
 
@@ -41,27 +40,11 @@ class StoreController(
                 val inputOrders = inputView.readItem()
                 val results = mutableListOf<PurchaseResult>()
 
-                // 주문 처리 반복문
                 for ((name, quantity) in inputOrders) {
-
-                    // [🚀 긴급 수정] 여기서 먼저 재고 체크를 수행합니다!
-                    // 컵라면 12개 입력 시, 여기서 바로 에러 터지고 catch 블록으로 날아감
                     storeService.checkStockAvailability(name, quantity)
 
-                    // ------------------------------------------------
-
-                    var finalQuantity = quantity
-
-                    // 1. 프로모션 혜택 (1개 더?)
-                    if (storeService.checkBonusStatus(name, finalQuantity)) {
-                        // ... (생략)
-                    }
-
-                    // 2. 프로모션 재고 부족 (정가 결제?)
-                    val shortage = storeService.checkStockShortage(name, finalQuantity)
-                    if (shortage > 0) {
-                        // ... (생략)
-                    }
+                    val finalQuantity = storeService.processPromotionInteraction(name, quantity) { message ->
+                        inputView.readYesNo(message)}
 
                     if (finalQuantity > 0) {
                         val result = storeService.orderItem(name, finalQuantity)
@@ -71,7 +54,7 @@ class StoreController(
                 return results
 
             } catch (e: IllegalArgumentException) {
-                outputView.printError(e.message!!)
+                outputView.printError(e.message ?: "[Error] 알 수 없는 에러")
             }
         }
     }
